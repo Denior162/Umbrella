@@ -1,0 +1,267 @@
+@startuml
+interface com.example.parasol.network.CurrentUvApiService {
++ UvResponse getIndexes(Double,Double)
+}
+
+class com.example.parasol.utils.useCases.FetchUVDataUseCase {
++ UvResponse invoke(Double,Double)
+}
+
+class com.example.parasol.data.UserPreferencesRepository$PreferencesKeys {
++  SELECTED_CITY
+}
+
+class com.example.parasol.data.UserPreferencesRepository {
++ Flow<String?> selectedCityFlow
++ void saveSelectedCity(String)
+}
+
+
+interface com.example.parasol.data.CityDao {
++ void insert(CityEntity)
++ void update(CityEntity)
++ void delete(CityEntity)
++ Flow<CityEntity> getCity(Int)
++ Flow<List<CityEntity>> getListOFCities()
+}
+
+interface com.example.parasol.network.NominatimSearchApiService {
++ List<City> searchCities(String,String)
+}
+
+interface com.example.parasol.data.AppContainer {
++ CitiesRepository citiesRepository
+}
+
+class com.example.parasol.ui.home.ForecastGroup {
+}
+enum com.example.parasol.utils.UvRiskLevel {
++  LOW
++  MODERATE
++  HIGH
++  VERY_HIGH
++  EXTREMELY_HIGH
+}
+
+class com.example.parasol.hilt.NetworkModule {
+-  GEOCODING_BASE_URL
+-  UV_INDEX_BASE_URL
++ OkHttpClient provideOkHttpClient()
++ Gson provideGson()
++ NominatimSearchApiService provideGeocodingSearchApiService(OkHttpClient,Gson)
++ NominatimReverseApiService provideGeocodingReverseApiService(OkHttpClient,Gson)
++ CurrentUvApiService provideStopLightApiService(OkHttpClient,Gson)
+}
+
+
+class com.example.parasol.hilt.DatabaseModule {
++ CityDao provideCityDao(CitiesDatabase)
++ CitiesDatabase provideCitiesDatabase(Context)
+}
+
+class com.example.parasol.ui.Screen$Home {
+}
+class com.example.parasol.ui.Screen$CitySearch {
+}
+class com.example.parasol.ui.Screen {
+}
+class com.example.parasol.ui.home.IndexUiState$Loading {
+}
+class com.example.parasol.ui.home.IndexUiState$Success {
+}
+class com.example.parasol.ui.home.IndexUiState$Error {
+}
+class com.example.parasol.ui.home.IndexUiState {
+}
+class com.example.parasol.ui.home.HomeViewModel$Companion {
+-  TIMEOUT_MILLIS
+-  NO_CITIES_AVAILABLE
+-  CITY_NOT_SELECTED
+-  CITY_NOT_FOUND
+-  CITY_ID_NOT_FOUND
+}
+
+class com.example.parasol.ui.home.HomeViewModel {
+-  _indexUiState
++ StateFlow<IndexUiState> indexUiState
+-  _selectedCityId
++ StateFlow<Int?> selectedCityId
++ StateFlow<HomeUiState> homeUiState
++ void retryAction()
+- void loadCities()
+- void observeSelectedCity()
+- void loadCityCoordinatesAndGetUV()
++ void setSelectedCity(CityEntity?)
+- void getUVIs(Double,Double)
+}
+
+
+class com.example.parasol.ui.home.HomeUiState {
+}
+interface com.example.parasol.data.CitiesRepository {
++ Flow<List<CityEntity>> getFullListOfCities()
++ Flow<CityEntity?> getOneCity(Int)
++ void insertCity(CityEntity)
++ void deleteCity(CityEntity)
++ void updateCity(CityEntity)
+}
+
+class com.example.parasol.utils.ErrorHandler {
++ String handleError(Exception)
+}
+
+class com.example.parasol.network.model.City {
+}
+class com.example.parasol.network.model.AddressData {
+}
+class com.example.parasol.ParasolApplication {
+- AppContainer container
++ void onCreate()
+}
+
+
+class com.example.parasol.hilt.RepositoryModule {
++ CitiesRepository provideCitiesRepository(CityDao)
+}
+
+class com.example.parasol.hilt.AppModule {
++ Context provideApplicationContext(Application)
+}
+
+class com.example.parasol.MainActivity {
++ void onCreate(Bundle?)
+}
+
+class com.example.parasol.network.model.UvResponse {
+}
+class com.example.parasol.network.model.CurrentUv {
+}
+class com.example.parasol.network.model.Forecast {
+}
+class com.example.parasol.data.CitiesDatabase$Companion {
+- CitiesDatabase? Instance
++ CitiesDatabase getDatabase(Context)
+}
+
+
+abstract class com.example.parasol.data.CitiesDatabase {
++ CityDao cityDao()
+}
+
+class com.example.parasol.ui.theme.ExtendedColorScheme {
+}
+class com.example.parasol.ui.theme.ColorFamily {
+}
+class com.example.parasol.data.CityEntity {
+}
+class com.example.parasol.utils.useCases.GetCitiesUseCase {
++ List<CityEntity> invoke()
+}
+
+class com.example.parasol.data.OfflineCitiesRepository {
++ Flow<List<CityEntity>> getFullListOfCities()
++ Flow<CityEntity?> getOneCity(Int)
++ void insertCity(CityEntity)
++ void deleteCity(CityEntity)
++ void updateCity(CityEntity)
+}
+
+interface com.example.parasol.network.NominatimReverseApiService {
++ City searchCities(Double,Double,String)
+}
+
+class com.example.parasol.ui.citySearch.SearchUiState$Loading {
+}
+class com.example.parasol.ui.citySearch.SearchUiState$Success {
+}
+class com.example.parasol.ui.citySearch.SearchUiState$Error {
+}
+class com.example.parasol.ui.citySearch.SearchUiState {
+}
+class com.example.parasol.ui.citySearch.ReverseSearchUiState$Loading {
+}
+class com.example.parasol.ui.citySearch.ReverseSearchUiState$Success {
+}
+class com.example.parasol.ui.citySearch.ReverseSearchUiState$Error {
+}
+class com.example.parasol.ui.citySearch.ReverseSearchUiState {
+}
+class com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$PermissionDenied {
+}
+class com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$LocationUnavailable {
+}
+class com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$GenericError {
+}
+class com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType {
+}
+class com.example.parasol.ui.citySearch.CitySearchViewModel {
+-  _citySearchUiState
++ StateFlow<SearchUiState> citySearchUiState
+-  _cityReverseUiState
++ StateFlow<ReverseSearchUiState> cityReverseUiState
+- Job? searchJob
+-  minQueryLength
+-  debounceDelay
++ StateFlow<HomeUiState> homeUiState
++  location
+-  errorMessage
++ void searchCityByName(String)
++ void searchCityByCurrentLocation()
+- void searchCityByCoordinates(Double,Double)
++ void addCityToRepository(City)
++ void deleteCity(CityEntity)
+- void updateLocation(Location)
++ void setError(ErrorType)
++ void getCurrentLocation(Context)
+}
+
+
+class com.example.parasol.data.AppDataContainer {
++ CitiesRepository citiesRepository
+}
+
+
+
+com.example.parasol.data.UserPreferencesRepository +.. com.example.parasol.data.UserPreferencesRepository$PreferencesKeys
+com.example.parasol.ui.Screen +.. com.example.parasol.ui.Screen$Home
+com.example.parasol.ui.Screen <|-- com.example.parasol.ui.Screen$Home
+com.example.parasol.ui.Screen +.. com.example.parasol.ui.Screen$CitySearch
+com.example.parasol.ui.Screen <|-- com.example.parasol.ui.Screen$CitySearch
+com.example.parasol.ui.home.IndexUiState +.. com.example.parasol.ui.home.IndexUiState$Loading
+com.example.parasol.ui.home.IndexUiState <|-- com.example.parasol.ui.home.IndexUiState$Loading
+com.example.parasol.ui.home.IndexUiState +.. com.example.parasol.ui.home.IndexUiState$Success
+com.example.parasol.ui.home.IndexUiState <|-- com.example.parasol.ui.home.IndexUiState$Success
+com.example.parasol.ui.home.IndexUiState +.. com.example.parasol.ui.home.IndexUiState$Error
+com.example.parasol.ui.home.IndexUiState <|-- com.example.parasol.ui.home.IndexUiState$Error
+com.example.parasol.ui.home.HomeViewModel +.. com.example.parasol.ui.home.HomeViewModel$Companion
+androidx.lifecycle.ViewModel <|-- com.example.parasol.ui.home.HomeViewModel
+android.app.Application <|-- com.example.parasol.ParasolApplication
+androidx.activity.ComponentActivity <|-- com.example.parasol.MainActivity
+com.example.parasol.data.CitiesDatabase +.. com.example.parasol.data.CitiesDatabase$Companion
+androidx.room.RoomDatabase <|-- com.example.parasol.data.CitiesDatabase
+com.example.parasol.data.CitiesRepository <|.. com.example.parasol.data.OfflineCitiesRepository
+com.example.parasol.ui.citySearch.SearchUiState +.. com.example.parasol.ui.citySearch.SearchUiState$Loading
+com.example.parasol.ui.citySearch.SearchUiState <|-- com.example.parasol.ui.citySearch.SearchUiState$Loading
+com.example.parasol.ui.citySearch.SearchUiState +.. com.example.parasol.ui.citySearch.SearchUiState$Success
+com.example.parasol.ui.citySearch.SearchUiState <|-- com.example.parasol.ui.citySearch.SearchUiState$Success
+com.example.parasol.ui.citySearch.SearchUiState +.. com.example.parasol.ui.citySearch.SearchUiState$Error
+com.example.parasol.ui.citySearch.SearchUiState <|-- com.example.parasol.ui.citySearch.SearchUiState$Error
+com.example.parasol.ui.citySearch.ReverseSearchUiState +.. com.example.parasol.ui.citySearch.ReverseSearchUiState$Loading
+com.example.parasol.ui.citySearch.ReverseSearchUiState <|-- com.example.parasol.ui.citySearch.ReverseSearchUiState$Loading
+com.example.parasol.ui.citySearch.ReverseSearchUiState +.. com.example.parasol.ui.citySearch.ReverseSearchUiState$Success
+com.example.parasol.ui.citySearch.ReverseSearchUiState <|-- com.example.parasol.ui.citySearch.ReverseSearchUiState$Success
+com.example.parasol.ui.citySearch.ReverseSearchUiState +.. com.example.parasol.ui.citySearch.ReverseSearchUiState$Error
+com.example.parasol.ui.citySearch.ReverseSearchUiState <|-- com.example.parasol.ui.citySearch.ReverseSearchUiState$Error
+com.example.parasol.ui.citySearch.ErrorType +.. com.example.parasol.ui.citySearch.ErrorType$PermissionDenied
+com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType +.. com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$PermissionDenied
+com.example.parasol.ui.citySearch.ErrorType <|-- com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$PermissionDenied
+com.example.parasol.ui.citySearch.ErrorType +.. com.example.parasol.ui.citySearch.ErrorType$LocationUnavailable
+com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType +.. com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$LocationUnavailable
+com.example.parasol.ui.citySearch.ErrorType <|-- com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$LocationUnavailable
+com.example.parasol.ui.citySearch.ErrorType +.. com.example.parasol.ui.citySearch.ErrorType$GenericError
+com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType +.. com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$GenericError
+com.example.parasol.ui.citySearch.ErrorType <|-- com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType$GenericError
+com.example.parasol.ui.citySearch.CitySearchViewModel +.. com.example.parasol.ui.citySearch.CitySearchViewModel$ErrorType
+androidx.lifecycle.ViewModel <|-- com.example.parasol.ui.citySearch.CitySearchViewModel
+com.example.parasol.data.AppContainer <|.. com.example.parasol.data.AppDataContainer
+@enduml

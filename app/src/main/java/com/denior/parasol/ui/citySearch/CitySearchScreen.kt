@@ -1,0 +1,299 @@
+package com.denior.parasol.ui.citySearch
+
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.denior.parasol.R
+import com.denior.parasol.data.CityEntity
+import com.denior.parasol.network.model.City
+import com.denior.parasol.ui.citySearch.uiState.CitySearchByNameUiState
+import com.denior.parasol.ui.citySearch.uiState.ReverseSearchByCoordinatesUiState
+import com.denior.parasol.ui.home.ErrorScreen
+import com.denior.parasol.ui.home.LoadingScreen
+import kotlinx.coroutines.flow.StateFlow
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CitySearchScreen(
+    navigateBack: () -> Unit,
+    viewModel: CitySearchViewModel = hiltViewModel(),
+    citySearchByNameUiState: StateFlow<CitySearchByNameUiState>,
+    reverseSearchByCoordinatesUiState: StateFlow<ReverseSearchByCoordinatesUiState>
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var isExpanded by remember { mutableStateOf(false) }
+    val city by viewModel.homeUiState.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            viewModel.getCurrentLocation()
+            viewModel.location?.let { _ ->
+                viewModel.searchCityByCurrentLocation()
+                showDialog = true
+            } ?: run {
+                viewModel.setError(CitySearchViewModel.ErrorType.LocationUnavailable)
+            }
+        } else {
+            viewModel.setError(CitySearchViewModel.ErrorType.PermissionDenied)
+        }
+    }
+
+    Scaffold(topBar = {
+        SearchBar(modifier = Modifier.fillMaxWidth(), inputField = {
+            SearchBarDefaults.InputField(
+                query = query,
+                onQueryChange = {
+                    query = it
+                    viewModel.searchCityByName(query)
+                },
+                placeholder = { Text(text = stringResource(id = R.string.city_search)) },
+                onSearch = {/*TODO()*/ },
+                expanded = isExpanded,
+                onExpandedChange = { isExpanded = it },
+                leadingIcon = {
+                    IconButton(onClick = { /*TODO*/ }) {
+
+                    }
+                }
+            )
+        }, expanded = isExpanded, onExpandedChange = { isExpanded = it }) {
+            val currentCityCitySearchByNameUiState by citySearchByNameUiState.collectAsState(
+                CitySearchByNameUiState.Loading
+            )
+            Column(modifier = Modifier.padding(16.dp)) {
+                when (currentCityCitySearchByNameUiState) {
+                    is CitySearchByNameUiState.Loading -> LoadingScreen()
+                    is CitySearchByNameUiState.Success -> {
+                        val cities =
+                            (currentCityCitySearchByNameUiState as CitySearchByNameUiState.Success).result
+                        CitySearchResultsList(
+                            cities,
+                            onSaveCity = { city ->
+                                viewModel.addCityToRepository(city)
+                            },
+
+                            navigateBack = navigateBack
+                        )
+                    }
+
+                    is CitySearchByNameUiState.Error -> ErrorScreen(
+                        retryAction = { /*TODO()*/ },
+                        errorMessage = (""/*TODO()*/)
+                    )
+                }
+            }
+        }
+    },
+        bottomBar = {
+            CitiesBottomAppBar(locationAction = {
+                viewModel.searchCityByCurrentLocation()
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                viewModel.searchCityByCurrentLocation()
+                showDialog = true
+            }
+            )
+        }
+    )
+    { innerPadding ->
+        val reverseSearchedCityUiState by reverseSearchByCoordinatesUiState.collectAsState(
+            ReverseSearchByCoordinatesUiState.Loading
+        )
+
+        if (showDialog) {
+            LocationCityDialog(
+                onDismissRequest = { showDialog = false },
+                addCityToDatabase = {
+                    if (reverseSearchedCityUiState is ReverseSearchByCoordinatesUiState.Success) {
+                        viewModel.addCityToRepository((reverseSearchedCityUiState as ReverseSearchByCoordinatesUiState.Success).result)
+                        showDialog = false
+                    }
+                },
+                addCityButtonEnabling = when (reverseSearchedCityUiState) {
+                    is ReverseSearchByCoordinatesUiState.Loading -> false
+                    is ReverseSearchByCoordinatesUiState.Success -> true
+                    is ReverseSearchByCoordinatesUiState.Error -> false
+                },
+                alertText = {
+                    Text(
+                        text = when (reverseSearchedCityUiState) {
+                            ReverseSearchByCoordinatesUiState.Error -> "Error with city search"
+                            ReverseSearchByCoordinatesUiState.Loading -> "Loading..."
+                            is ReverseSearchByCoordinatesUiState.Success -> (reverseSearchedCityUiState as ReverseSearchByCoordinatesUiState.Success).result.address.city
+                        }
+                    )
+                }
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth()
+        ) {
+            AddedCitiesList(
+                cityList = city.citiesList,
+                deleteCity = { city ->
+                    viewModel.deleteCity(city)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun CitySearchResultsList(
+    cities: List<City>,
+    onSaveCity: (City) -> Unit,
+    navigateBack: () -> Unit
+) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(cities) { city ->
+            CityItem(
+                cityName = city.displayName,
+                action = {
+                    onSaveCity(
+                        city
+                    )
+                    navigateBack()
+                },
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add ${city.name} to list"
+            )
+        }
+    }
+}
+
+@Composable
+fun AddedCitiesList(
+    cityList: List<CityEntity>,
+    deleteCity: (CityEntity) -> Unit
+) {
+
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            Text(
+                text = stringResource(R.string.already_added_cities),
+                modifier = Modifier.padding(4.dp)
+            )
+        }
+
+        items(items = cityList) { city ->
+            CityItem(
+                cityName = city.cityName,
+                action = { deleteCity(city) },
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete ${city.cityName} from list"
+            )
+        }
+    }
+}
+
+@Composable
+fun CityItem(
+    cityName: String,
+    action: () -> Unit,
+    imageVector: ImageVector,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Text(
+                text = cityName,
+                modifier = Modifier.weight(1F)
+            )
+            IconButton(onClick = action) {
+                Icon(
+                    imageVector = imageVector,
+                    contentDescription = contentDescription,
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun CitiesBottomAppBar(locationAction: () -> Unit) {
+    BottomAppBar(actions = {
+        IconButton(onClick = { /*TODO*/ }) {
+
+        }
+    }, floatingActionButton = {
+        FloatingActionButton(onClick = locationAction) {
+            Icon(
+                imageVector = Icons.Default.LocationOn,
+                contentDescription = stringResource(R.string.get_city_with_location)
+            )
+        }
+    })
+}
+
+@Preview
+@Composable
+fun CityCardPreview() {
+    CityItem(
+        cityName = "Kharkiv\nK\n" +
+                "K\n" +
+                "K\n" +
+                "K\n" +
+                "K\n" +
+                "K\n" +
+                "K",
+        action = { },
+        imageVector = Icons.Default.Add,
+        contentDescription = "",
+        modifier = Modifier
+    )
+}

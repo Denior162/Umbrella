@@ -3,21 +3,21 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android) // Kotlin Android plugin
     alias(libs.plugins.compose.compiler) // Jetpack Compose compiler plugin
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10" // Kotlin serialization plugin
-    id("com.google.devtools.ksp") version "2.0.20-1.0.24" // Kotlin Symbol Processing (KSP) plugin
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28" // Kotlin Symbol Processing (KSP) plugin
     id("kotlin-kapt") // Kotlin Annotation Processing Tool (KAPT)
     id("com.google.dagger.hilt.android") // Dagger Hilt for dependency injection
 }
 
 android {
-    namespace = "com.example.parasol"
-    compileSdk = 34
+    namespace = "com.denior.parasol"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.parasol"
-        minSdk = 31
+        applicationId = "com.denior.parasol"
+        minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -34,12 +34,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
 
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -55,63 +55,57 @@ android {
 }
 
 dependencies {
-    // AndroidX Libraries
-    implementation(libs.androidx.core.ktx) // Core KTX extensions
-    implementation(libs.androidx.activity.compose) // Jetpack Compose support for Activity
-    implementation(platform(libs.androidx.compose.bom)) // BOM for Compose libraries
-    implementation(libs.androidx.ui) // Core UI components for Jetpack Compose
-    implementation(libs.androidx.ui.graphics) // Graphics components for Jetpack Compose UI
-    implementation(libs.androidx.ui.tooling.preview) // Preview tooling for Jetpack Compose UI
-    implementation(libs.androidx.material3) // Material Design 3 components
-    implementation(libs.androidx.lifecycle.runtime.ktx) // Lifecycle extensions for Kotlin
-    implementation(libs.androidx.navigation.runtime.ktx) // Navigation component with Kotlin support
-    implementation(libs.androidx.navigation.compose) // Navigation for Jetpack Compose
-    implementation(libs.material3)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.profileinstaller)
+    implementation(libs.androidx.benchmark.macro.junit4)
 
-    // Retrofit for REST API interaction
-    implementation(libs.retrofit) // Core Retrofit library
-    implementation(libs.retrofit2.converter.gson) // Gson converter for Retrofit
-    implementation(libs.retrofit2.kotlinx.serialization.converter) // Converter for Kotlinx Serialization
-    implementation(libs.converter.gson) // Alternative way to add Gson converter (if needed)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.kotlinx.serialization.json)
-
-    // Ktor for asynchronous HTTP client operations
-    implementation(libs.ktor.client.core) // Core components of Ktor client
-    implementation(libs.ktor.client.json) // JSON support in Ktor client
-    implementation(libs.ktor.client.content.negotiation) // Content negotiation support in Ktor client
-    implementation(libs.ktor.client.serialization) // Optional JSON serialization support in Ktor
-    implementation(libs.ktor.client.okhttp) // OkHttp support for Ktor client
-    implementation(libs.ktor.serialization.kotlinx.json) // Kotlinx Serialization support in Ktor client
-
-    // Room for local database management
+    implementation(libs.converter.gson)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.json)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.serialization)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.androidx.room.runtime)
-    implementation(libs.play.services.location) // Core Room library for database operations
-    ksp(libs.androidx.room.compiler) // Room annotation processor (KSP)
-    implementation(libs.androidx.room.ktx) // Kotlin extensions for Room
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.play.services.location)
+    implementation(libs.locationdelegation)
+    androidTestImplementation(libs.junit.jupiter)
+    ksp(libs.androidx.room.compiler)
 
-    // Datastore for storing preferences and settings
-    implementation(libs.androidx.datastore.preferences) // Preferences DataStore
+    implementation(libs.androidx.datastore.preferences)
 
-    // Dependency Injection with Hilt
-    implementation(libs.hilt.android) // Hilt Android dependency injection library
-    kapt(libs.hilt.android.compiler) // Hilt compiler for annotation processing
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Testing dependencies
-    testImplementation(libs.junit) // JUnit for unit testing
+    testImplementation(libs.junit)
     testImplementation(libs.androidx.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
+    testImplementation(libs.mockk)
 
-    androidTestImplementation(platform(libs.androidx.compose.bom)) // BOM for Compose in tests
-    androidTestImplementation(libs.androidx.junit) // JUnit for Android instrumentation tests
-    androidTestImplementation(libs.androidx.espresso.core) // Espresso for UI testing
-    androidTestImplementation(libs.androidx.ui.test.junit4) // UI testing tools for Jetpack Compose
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 
-    debugImplementation(libs.androidx.ui.tooling) // Debugging tools for Jetpack Compose UI components
-    debugImplementation(libs.androidx.ui.test.manifest) // Manifest file for UI testing
-
-    implementation(kotlin("script-runtime"))  // Dependency to work with Kotlin scripts
+    implementation(kotlin("script-runtime"))
 }
+
 

@@ -14,4 +14,6 @@
     <string name="already_added_cities">Вже додані міста</string>
     <string name="delete_from_the_list">видалити %1$s зі списку</string>
     <string name="get_city_with_location">Отримати Місто з геоданими</string>
+    <string name="today">Сьогодні</string>
+    <string name="tomorrow">Завтра</string>
 </resources>

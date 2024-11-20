@@ -14,4 +14,6 @@
     <string name="already_added_cities">Already added cities</string>
     <string name="delete_from_the_list">delete %1$s from the list</string>
     <string name="get_city_with_location">Get City with Location</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
 </resources>

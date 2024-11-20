@@ -14,4 +14,6 @@
     <string name="already_added_cities">Уже добавленные города</string>
     <string name="delete_from_the_list">удалить %1$s из списка</string>
     <string name="get_city_with_location">Получить Город с геопозицией</string>
+    <string name="today">Сегодня</string>
+    <string name="tomorrow">Завтра</string>
 </resources>

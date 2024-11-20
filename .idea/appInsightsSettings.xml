@@ -7,10 +7,10 @@
         <entry key="Android Vitals">
           <value>
             <InsightsFilterSettings>
-              <option name="failureTypes">
-                <list>
-                  <option value="ANR" />
-                </list>
+              <option name="connection">
+                <ConnectionSetting>
+                  <option name="appId" value="com.denior.parasol" />
+                </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
               <option name="timeIntervalDays" value="SEVEN_DAYS" />
